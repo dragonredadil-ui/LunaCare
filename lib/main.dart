@@ -198,26 +198,70 @@ class _HomeState extends State<Home> {
   bool isPeriod(DateTime d)=>starts.any((s)=>!d.isBefore(s)&&d.difference(s).inDays<5);
   bool isPredicted(DateTime d)=>next!=null&&d.year==next!.year&&d.month==next!.month&&d.day>=next!.day&&d.day<next!.day+5;
 
+  
   @override
   Widget build(BuildContext context) => Directionality(
-  textDirection: lang == 'ar'
-      ? TextDirection.rtl
-      : TextDirection.ltr,
-  child: Scaffold(
-    child:Scaffold(
-      appBar:AppBar(title:const Text('🌙 LunaCare',style:TextStyle(fontWeight:FontWeight.w800,color:plum)),
-        actions:[PopupMenuButton<String>(onSelected:widget.onLanguage,itemBuilder:(_)=>const [
-          PopupMenuItem(value:'ar',child:Text('العربية')),PopupMenuItem(value:'fr',child:Text('Français')),PopupMenuItem(value:'en',child:Text('English'))],
-          child:const Padding(padding:EdgeInsets.symmetric(horizontal:16),child:Icon(Icons.language)))]),
-      body:IndexedStack(index:tab,children:[dashboard(),calendarPage(),symptomsPage(),settingsPage()]),
-      bottomNavigationBar:NavigationBar(selectedIndex:tab,onDestinationSelected:(v)=>setState(()=>tab=v),destinations:[
-        NavigationDestination(icon:const Icon(Icons.home_outlined),label:t('home')),
-        NavigationDestination(icon:const Icon(Icons.calendar_month_outlined),label:t('calendar')),
-        NavigationDestination(icon:const Icon(Icons.favorite_border),label:t('symptoms')),
-        NavigationDestination(icon:const Icon(Icons.settings_outlined),label:t('profile')),
-      ]),
+    textDirection: lang == 'ar'
+        ? TextDirection.rtl
+        : TextDirection.ltr,
+    child: Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          '🌙 LunaCare',
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            color: plum,
+          ),
+        ),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: widget.onLanguage,
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: 'ar', child: Text('العربية')),
+              PopupMenuItem(value: 'fr', child: Text('Français')),
+              PopupMenuItem(value: 'en', child: Text('English')),
+            ],
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Icon(Icons.language),
+            ),
+          ),
+        ],
+      ),
+      body: IndexedStack(
+        index: tab,
+        children: [
+          dashboard(),
+          calendarPage(),
+          symptomsPage(),
+          settingsPage(),
+        ],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: tab,
+        onDestinationSelected: (v) => setState(() => tab = v),
+        destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.home_outlined),
+            label: t('home'),
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.calendar_month_outlined),
+            label: t('calendar'),
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.favorite_border),
+            label: t('symptoms'),
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.settings_outlined),
+            label: t('profile'),
+          ),
+        ],
+      ),
     ),
   );
+
 
   Widget dashboard()=>ListView(padding:const EdgeInsets.all(20),children:[
     Text(t('hello'),style:const TextStyle(fontSize:28,fontWeight:FontWeight.w800,color:ink)),
