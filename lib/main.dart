@@ -199,10 +199,11 @@ class _HomeState extends State<Home> {
   bool isPredicted(DateTime d)=>next!=null&&d.year==next!.year&&d.month==next!.month&&d.day>=next!.day&&d.day<next!.day+5;
 
   @override
-  Widget build(BuildContext context)=>Directionality(
-    textDirection: lang == 'ar'
-    ? TextDirection.rightToLeft
-    : TextDirection.leftToRight,,
+  Widget build(BuildContext context) => Directionality(
+  textDirection: lang == 'ar'
+      ? TextDirection.rtl
+      : TextDirection.ltr,
+  child: Scaffold(
     child:Scaffold(
       appBar:AppBar(title:const Text('🌙 LunaCare',style:TextStyle(fontWeight:FontWeight.w800,color:plum)),
         actions:[PopupMenuButton<String>(onSelected:widget.onLanguage,itemBuilder:(_)=>const [
