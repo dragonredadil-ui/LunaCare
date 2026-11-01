@@ -472,7 +472,7 @@ class _CycleTrendPainter extends CustomPainter {
       canvas.drawCircle(points[i], 5, dotPaint);
       final label = TextPainter(
         text: TextSpan(text: '${values[i]}', style: const TextStyle(fontSize:10,color:plum,fontWeight:FontWeight.w600)),
-        textDirection: TextDirection.ltr,
+        textDirection: ui.TextDirection.ltr,
       )..layout();
       final labelX = (points[i].dx - label.width / 2).clamp(0.0, size.width - label.width);
       final labelY = (points[i].dy - 19).clamp(0.0, size.height - label.height);
