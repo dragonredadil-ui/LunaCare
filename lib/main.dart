@@ -1,9 +1,8 @@
-
 import 'dart:convert';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'dart:ui' as ui;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'services/secure_vault.dart';
 import 'services/biometric_service.dart';
@@ -120,7 +119,8 @@ const strings = {
 'calm':'هادئ','happy':'سعيدة','tired':'متعبة','anxious':'قلقة','sad':'حزينة',
 'cramps':'تقلصات','headache':'صداع','bloating':'انتفاخ','acne':'حب الشباب','tender':'حساسية الثدي',
 'none':'لا شيء','reminder':'التذكيرات','reminderInfo':'إعداد التذكيرات سيُفعّل بعد ضبط صلاحيات الإشعارات على الجهاز.',
-'export':'تصدير البيانات','exportInfo':'يمكن إضافة تصدير PDF ونسخة احتياطية مشفرة في مرحلة لاحقة.'},
+'export':'تصدير البيانات','exportInfo':'يمكن إضافة تصدير PDF ونسخة احتياطية مشفرة في مرحلة لاحقة.',
+'stats':'إحصائيات الدورة','monthly':'بدايات الدورة هذا الشهر','recorded':'الفواصل المسجلة','trend':'تغيّر طول الدورة','notEnough':'سجّلي بداية دورتين على الأقل لعرض الرسم البياني.'},
 'fr': {'home':'Accueil','calendar':'Calendrier','symptoms':'Symptômes','profile':'Paramètres',
 'hello':'Bonjour','subtitle':'Prenez soin de vous, à votre rythme.','next':'Prochaines règles estimées',
 'add':'Enregistrer le début des règles','history':'Historique','empty':'Aucune donnée pour le moment.',
@@ -131,7 +131,8 @@ const strings = {
 'calm':'Calme','happy':'Heureuse','tired':'Fatiguée','anxious':'Anxieuse','sad':'Triste',
 'cramps':'Crampes','headache':'Mal de tête','bloating':'Ballonnements','acne':'Acné','tender':'Sensibilité des seins',
 'none':'Aucun','reminder':'Rappels','reminderInfo':'Les rappels seront activés après configuration des autorisations de notification.',
-'export':'Exporter les données','exportInfo':'L’export PDF et la sauvegarde chiffrée seront ajoutés ultérieurement.'},
+'export':'Exporter les données','exportInfo':'L’export PDF et la sauvegarde chiffrée seront ajoutés ultérieurement.',
+'stats':'Statistiques du cycle','monthly':'Débuts des règles ce mois-ci','recorded':'Intervalles enregistrés','trend':'Évolution de la durée du cycle','notEnough':'Enregistrez au moins deux débuts de règles pour afficher le graphique.'},
 'en': {'home':'Home','calendar':'Calendar','symptoms':'Symptoms','profile':'Settings',
 'hello':'Hello','subtitle':'Care for yourself, at your own pace.','next':'Next period estimate',
 'add':'Log period start','history':'Cycle history','empty':'No data yet.',
@@ -142,7 +143,8 @@ const strings = {
 'calm':'Calm','happy':'Happy','tired':'Tired','anxious':'Anxious','sad':'Sad',
 'cramps':'Cramps','headache':'Headache','bloating':'Bloating','acne':'Acne','tender':'Breast tenderness',
 'none':'None','reminder':'Reminders','reminderInfo':'Reminders can be enabled after device notification permissions are configured.',
-'export':'Export data','exportInfo':'PDF export and encrypted backup can be added in a later release.'}
+'export':'Export data','exportInfo':'PDF export and encrypted backup can be added in a later release.',
+'stats':'Cycle statistics','monthly':'Period starts this month','recorded':'Recorded intervals','trend':'Cycle length trend','notEnough':'Log at least two period starts to display the chart.'}
 };
 
 class Home extends StatefulWidget {
@@ -261,6 +263,19 @@ class _HomeState extends State<Home> {
     return gaps.isEmpty?28:(gaps.reduce((x,y)=>x+y)/gaps.length).round();
   }
   DateTime? get next=>starts.isEmpty?null:starts.first.add(Duration(days:avg));
+
+  List<int> get cycleLengths {
+    final chronological = starts.toList()..sort((a,b)=>a.compareTo(b));
+    final values = <int>[];
+    for (var i = 1; i < chronological.length; i++) {
+      final days = chronological[i].difference(chronological[i-1]).inDays;
+      if (days >= 15 && days <= 60) values.add(days);
+    }
+    return values.length > 6 ? values.sublist(values.length - 6) : values;
+  }
+
+  int get startsThisMonth => starts.where((d) =>
+    d.year == DateTime.now().year && d.month == DateTime.now().month).length;
   Future<void> addPeriod() async {
     final now=DateTime.now();
     final d=await showDatePicker(context:context,initialDate:now,firstDate:DateTime(now.year-4),lastDate:DateTime(now.year+1));
@@ -318,7 +333,31 @@ class _HomeState extends State<Home> {
     const SizedBox(height:12),Text(t('history'),style:const TextStyle(fontSize:18,fontWeight:FontWeight.bold)),
     if(starts.isEmpty)Text(t('empty')),
     ...starts.take(4).map((d)=>ListTile(leading:const Icon(Icons.water_drop_outlined,color:rose),title:Text(DateFormat('d MMM yyyy',lang).format(d)))),
+    const SizedBox(height:18),
+    Text(t('stats'),style:const TextStyle(fontSize:18,fontWeight:FontWeight.bold,color:plum)),
+    const SizedBox(height:8),
+    Card(elevation:0,color:Colors.white,child:Padding(padding:const EdgeInsets.all(16),child:Column(
+      crossAxisAlignment:CrossAxisAlignment.start,children:[
+        _statLine(t('monthly'), startsThisMonth.toString()),
+        const Divider(height:20),
+        _statLine(t('recorded'), cycleLengths.length.toString()),
+        const SizedBox(height:16),
+        Text(t('trend'),style:const TextStyle(fontWeight:FontWeight.w700,color:plum)),
+        const SizedBox(height:12),
+        if (cycleLengths.isEmpty)
+          Text(t('notEnough'),style:const TextStyle(color:Colors.black54))
+        else
+          SizedBox(height:170,width:double.infinity,child:CycleTrendChart(values:cycleLengths)),
+        const SizedBox(height:8),
+        Text(t('estimate'),style:const TextStyle(fontSize:11,color:Colors.black54)),
+      ],
+    ))),
   ]);
+
+  Widget _statLine(String label, String value) => Row(
+    mainAxisAlignment:MainAxisAlignment.spaceBetween,
+    children:[Expanded(child:Text(label)),Text(value,style:const TextStyle(fontWeight:FontWeight.bold,color:plum))],
+  );
 
   Widget calendarPage(){
     final first=DateTime(month.year,month.month,1);
@@ -378,6 +417,71 @@ class _HomeState extends State<Home> {
     const SizedBox(height:12),
     const Text('LunaCare ne remplace pas un avis médical. Les prévisions du cycle ne sont pas une méthode contraceptive.',style:TextStyle(color:Colors.black54,fontSize:12)),
   ]);
+}
+
+class CycleTrendChart extends StatelessWidget {
+  final List<int> values;
+  const CycleTrendChart({super.key, required this.values});
+
+  @override
+  Widget build(BuildContext context) {
+    if (values.isEmpty) return const SizedBox.shrink();
+    return CustomPaint(
+      painter: _CycleTrendPainter(values),
+      child: const SizedBox.expand(),
+    );
+  }
+}
+
+class _CycleTrendPainter extends CustomPainter {
+  final List<int> values;
+  _CycleTrendPainter(this.values);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (values.isEmpty || size.width <= 0 || size.height <= 0) return;
+    const minDays = 15.0;
+    const maxDays = 60.0;
+    final left = 24.0;
+    final right = size.width - 12.0;
+    final top = 12.0;
+    final bottom = size.height - 18.0;
+    final gridPaint = Paint()..color = const Color(0xFFEFE7ED)..strokeWidth = 1;
+    final linePaint = Paint()..color = rose..strokeWidth = 3
+      ..style = PaintingStyle.stroke..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round;
+    final dotPaint = Paint()..color = rose..style = PaintingStyle.fill;
+    for (var i = 0; i < 4; i++) {
+      final y = top + (bottom - top) * i / 3;
+      canvas.drawLine(Offset(left, y), Offset(right, y), gridPaint);
+    }
+    final points = <Offset>[];
+    for (var i = 0; i < values.length; i++) {
+      final x = values.length == 1
+          ? (left + right) / 2
+          : left + (right - left) * i / (values.length - 1);
+      final bounded = values[i].clamp(minDays.toInt(), maxDays.toInt()).toDouble();
+      final y = bottom - (bounded - minDays) / (maxDays - minDays) * (bottom - top);
+      points.add(Offset(x, y));
+    }
+    if (points.length > 1) {
+      final path = Path()..moveTo(points.first.dx, points.first.dy);
+      for (final point in points.skip(1)) { path.lineTo(point.dx, point.dy); }
+      canvas.drawPath(path, linePaint);
+    }
+    for (var i = 0; i < points.length; i++) {
+      canvas.drawCircle(points[i], 5, dotPaint);
+      final label = TextPainter(
+        text: TextSpan(text: '${values[i]}', style: const TextStyle(fontSize:10,color:plum,fontWeight:FontWeight.w600)),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final labelX = (points[i].dx - label.width / 2).clamp(0.0, size.width - label.width);
+      final labelY = (points[i].dy - 19).clamp(0.0, size.height - label.height);
+      label.paint(canvas, Offset(labelX, labelY));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CycleTrendPainter oldDelegate) => oldDelegate.values != values;
 }
 
 class SymptomEditor extends StatefulWidget {
