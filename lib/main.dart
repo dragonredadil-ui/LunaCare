@@ -263,6 +263,17 @@ class _HomeState extends State<Home> {
     return gaps.isEmpty?28:(gaps.reduce((x,y)=>x+y)/gaps.length).round();
   }
   DateTime? get next=>starts.isEmpty?null:starts.first.add(Duration(days:avg));
+  int? get daysUntilNext {
+  final estimate = next;
+  if (estimate == null) return null;
+
+  final today = DateTime.now();
+  final todayOnly = DateTime(today.year, today.month, today.day);
+  final estimateOnly =
+      DateTime(estimate.year, estimate.month, estimate.day);
+
+  return estimateOnly.difference(todayOnly).inDays;
+}
 
   List<int> get cycleLengths {
     final chronological = starts.toList()..sort((a,b)=>a.compareTo(b));
@@ -320,7 +331,32 @@ class _HomeState extends State<Home> {
         Text(t('next'),style:const TextStyle(color:plum,fontWeight:FontWeight.w700)),
         const SizedBox(height:10),
         Text(next==null?'—':DateFormat('d MMMM yyyy',lang).format(next!),style:const TextStyle(fontSize:24,fontWeight:FontWeight.w800,color:plum)),
-        const SizedBox(height:8),Text(t('estimate'),style:const TextStyle(color:plum)),
+        const SizedBox(height:8),
+if (daysUntilNext != null) ...[
+  Text(
+    daysUntilNext! == 0
+        ? t('dueToday')
+        : daysUntilNext! > 0
+            ? '${t('countdown')}: ${daysUntilNext!} ${t('days')}'
+            : '${t('overdue')}: ${daysUntilNext!.abs()} ${t('days')}',
+    style: const TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w700,
+      color: plum,
+    ),
+  ),
+  const SizedBox(height:6),
+],
+Text(t('estimate'),style:const TextStyle(color:plum)),
+        'countdown':'الوقت المتبقي تقريباً',
+'dueToday':'التاريخ المتوقع هو اليوم',
+'overdue':'تجاوز التاريخ المتوقع بـ',
+        'countdown':'Temps restant estimé',
+'dueToday':'La date estimée est aujourd’hui',
+'overdue':'Date estimée dépassée de',
+        'countdown':'Estimated time remaining',
+'dueToday':'The estimated date is today',
+'overdue':'Estimated date passed by',
       ])),
     const SizedBox(height:14),
     Card(elevation:0,color:Colors.white,child:Padding(padding:const EdgeInsets.all(16),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
