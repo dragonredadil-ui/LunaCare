@@ -200,7 +200,9 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context)=>Directionality(
-    textDirection:lang=='ar'?TextDirection.rtl:TextDirection.ltr,
+    textDirection: lang == 'ar'
+    ? TextDirection.rightToLeft
+    : TextDirection.leftToRight,,
     child:Scaffold(
       appBar:AppBar(title:const Text('🌙 LunaCare',style:TextStyle(fontWeight:FontWeight.w800,color:plum)),
         actions:[PopupMenuButton<String>(onSelected:widget.onLanguage,itemBuilder:(_)=>const [
