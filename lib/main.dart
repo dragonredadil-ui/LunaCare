@@ -6,6 +6,7 @@ import 'services/secure_vault.dart';
 import 'services/biometric_service.dart';
 import 'services/reminder_service.dart';
 import 'services/pdf_report_service.dart';
+import 'dart:ui' as ui;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -201,9 +202,9 @@ class _HomeState extends State<Home> {
   
   @override
   Widget build(BuildContext context) => Directionality(
-    textDirection: lang == 'ar' ? const 
-    TextDirection(1) : const 
-    TextDirection(0),
+    textDirection: lang == 'ar'
+    ? ui.TextDirection.rtl
+    : ui.TextDirection.ltr,
     child: Scaffold(
       appBar: AppBar(
         title: const Text(
