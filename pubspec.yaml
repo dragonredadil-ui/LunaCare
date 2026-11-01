@@ -1,0 +1,28 @@
+name: lunacare
+description: LunaCare - private cycle and wellness tracker
+publish_to: 'none'
+version: 0.3.0+3
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.3.2
+  intl: ^0.19.0
+  cryptography: ^2.7.0
+  flutter_secure_storage: ^9.2.2
+  local_auth: ^2.3.0
+  flutter_local_notifications: ^17.2.3
+  timezone: ^0.9.4
+  pdf: ^3.11.1
+  printing: ^5.13.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
