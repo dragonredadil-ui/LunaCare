@@ -1,16 +1,87 @@
-import 'dart:convert';
+mport 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'dart:ui' as ui;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'services/secure_vault.dart';
 import 'services/biometric_service.dart';
 import 'services/reminder_service.dart';
 import 'services/pdf_report_service.dart';
-import 'dart:ui' as ui;
 
-Future<void> main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const LunaCareApp());
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+  };
+  runApp(const LunaCareBootstrap());
+}
+
+// Shows startup errors on-screen instead of leaving a blank page.
+class LunaCareBootstrap extends StatefulWidget {
+  const LunaCareBootstrap({super.key});
+  @override
+  State<LunaCareBootstrap> createState() => _LunaCareBootstrapState();
+}
+
+class _LunaCareBootstrapState extends State<LunaCareBootstrap> {
+  late Future<void> initialization;
+
+  @override
+  void initState() {
+    super.initState();
+    initialization = _initialize();
+  }
+
+  Future<void> _initialize() async {
+    await Future.wait([
+      initializeDateFormatting('ar'),
+      initializeDateFormatting('fr'),
+      initializeDateFormatting('en'),
+    ]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: FutureBuilder<void>(
+        future: initialization,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Scaffold(
+              backgroundColor: const Color(0xFFFFF8FB),
+              body: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: ListView(children: [
+                    const Icon(Icons.error_outline, size: 52, color: Colors.red),
+                    const SizedBox(height: 16),
+                    const Text('LunaCare startup error',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+                    SelectableText(snapshot.error.toString()),
+                    const SizedBox(height: 20),
+                    FilledButton(
+                      onPressed: () => setState(() { initialization = _initialize(); }),
+                      child: const Text('Try again'),
+                    ),
+                  ]),
+                ),
+              ),
+            );
+          }
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Scaffold(
+              backgroundColor: Color(0xFFFFF8FB),
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          return const LunaCareApp();
+        },
+      ),
+    );
+  }
 }
 
 const rose = Color(0xFFD96B9B);
@@ -197,72 +268,31 @@ class _HomeState extends State<Home> {
     if(!starts.any((x)=>key(x)==key(v))){starts.add(v);starts.sort((a,b)=>b.compareTo(a));await persist();setState((){});}
   }
   bool isPeriod(DateTime d)=>starts.any((s)=>!d.isBefore(s)&&d.difference(s).inDays<5);
-  bool isPredicted(DateTime d)=>next!=null&&d.year==next!.year&&d.month==next!.month&&d.day>=next!.day&&d.day<next!.day+5;
+  bool isPredicted(DateTime d) {
+    final estimate = next;
+    if (estimate == null) return false;
+    final day = DateTime(d.year, d.month, d.day);
+    final start = DateTime(estimate.year, estimate.month, estimate.day);
+    return !day.isBefore(start) && day.isBefore(start.add(const Duration(days: 5)));
+  }
 
-  
   @override
-  Widget build(BuildContext context) => Directionality(
-    textDirection: lang == 'ar'
-    ? ui.TextDirection.rtl
-    : ui.TextDirection.ltr,
-    child: Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          '🌙 LunaCare',
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            color: plum,
-          ),
-        ),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: widget.onLanguage,
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'ar', child: Text('العربية')),
-              PopupMenuItem(value: 'fr', child: Text('Français')),
-              PopupMenuItem(value: 'en', child: Text('English')),
-            ],
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Icon(Icons.language),
-            ),
-          ),
-        ],
-      ),
-      body: IndexedStack(
-        index: tab,
-        children: [
-          dashboard(),
-          calendarPage(),
-          symptomsPage(),
-          settingsPage(),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: tab,
-        onDestinationSelected: (v) => setState(() => tab = v),
-        destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.home_outlined),
-            label: t('home'),
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.calendar_month_outlined),
-            label: t('calendar'),
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.favorite_border),
-            label: t('symptoms'),
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.settings_outlined),
-            label: t('profile'),
-          ),
-        ],
-      ),
+  Widget build(BuildContext context)=>Directionality(
+    textDirection:lang=='ar'?ui.TextDirection.rtl:ui.TextDirection.ltr,
+    child:Scaffold(
+      appBar:AppBar(title:const Text('🌙 LunaCare',style:TextStyle(fontWeight:FontWeight.w800,color:plum)),
+        actions:[PopupMenuButton<String>(onSelected:widget.onLanguage,itemBuilder:(_)=>const [
+          PopupMenuItem(value:'ar',child:Text('العربية')),PopupMenuItem(value:'fr',child:Text('Français')),PopupMenuItem(value:'en',child:Text('English'))],
+          child:const Padding(padding:EdgeInsets.symmetric(horizontal:16),child:Icon(Icons.language)))]),
+      body:IndexedStack(index:tab,children:[dashboard(),calendarPage(),symptomsPage(),settingsPage()]),
+      bottomNavigationBar:NavigationBar(selectedIndex:tab,onDestinationSelected:(v)=>setState(()=>tab=v),destinations:[
+        NavigationDestination(icon:const Icon(Icons.home_outlined),label:t('home')),
+        NavigationDestination(icon:const Icon(Icons.calendar_month_outlined),label:t('calendar')),
+        NavigationDestination(icon:const Icon(Icons.favorite_border),label:t('symptoms')),
+        NavigationDestination(icon:const Icon(Icons.settings_outlined),label:t('profile')),
+      ]),
     ),
   );
-
 
   Widget dashboard()=>ListView(padding:const EdgeInsets.all(20),children:[
     Text(t('hello'),style:const TextStyle(fontSize:28,fontWeight:FontWeight.w800,color:ink)),
