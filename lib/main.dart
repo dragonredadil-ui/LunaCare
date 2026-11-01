@@ -112,39 +112,36 @@ const strings = {
 'ar': {'home':'الرئيسية','calendar':'التقويم','symptoms':'الأعراض','profile':'الإعدادات',
 'hello':'مرحباً بكِ','subtitle':'اعتني بصحتك على راحتك.','next':'الدورة القادمة المتوقعة',
 'add':'تسجيل بداية الدورة','history':'سجل الدورات','empty':'لا توجد بيانات بعد.',
-'cycle':'طول الدورة المعتاد','days':'يوماً','estimate':'توقع تقريبي وليس موعداً مؤكداً.',
+'cycle':'طول الدورة المعتاد','days':'يوماً','estimate':'توقع تقريبي وليس موعداً مؤكداً.','countdown':'الوقت المتبقي تقريباً','dueToday':'التاريخ المتوقع هو اليوم','overdue':'تجاوز التاريخ المتوقع بـ',
 'logday':'تسجيل يومي','mood':'المزاج','pain':'مستوى الألم','symptom':'الأعراض',
 'notes':'ملاحظات','save':'حفظ','saved':'تم الحفظ','privacy':'بياناتك تبقى على هذا الجهاز.',
 'period':'الدورة','predicted':'موعد متوقع','flow':'تدفق الدورة','low':'خفيف','medium':'متوسط','high':'غزير',
 'calm':'هادئ','happy':'سعيدة','tired':'متعبة','anxious':'قلقة','sad':'حزينة',
 'cramps':'تقلصات','headache':'صداع','bloating':'انتفاخ','acne':'حب الشباب','tender':'حساسية الثدي',
 'none':'لا شيء','reminder':'التذكيرات','reminderInfo':'إعداد التذكيرات سيُفعّل بعد ضبط صلاحيات الإشعارات على الجهاز.',
-'export':'تصدير البيانات','exportInfo':'يمكن إضافة تصدير PDF ونسخة احتياطية مشفرة في مرحلة لاحقة.',
-'stats':'إحصائيات الدورة','monthly':'بدايات الدورة هذا الشهر','recorded':'الفواصل المسجلة','trend':'تغيّر طول الدورة','notEnough':'سجّلي بداية دورتين على الأقل لعرض الرسم البياني.'},
+'export':'تصدير البيانات','exportInfo':'يمكن إضافة تصدير PDF ونسخة احتياطية مشفرة في مرحلة لاحقة.'},
 'fr': {'home':'Accueil','calendar':'Calendrier','symptoms':'Symptômes','profile':'Paramètres',
 'hello':'Bonjour','subtitle':'Prenez soin de vous, à votre rythme.','next':'Prochaines règles estimées',
 'add':'Enregistrer le début des règles','history':'Historique','empty':'Aucune donnée pour le moment.',
-'cycle':'Durée habituelle du cycle','days':'jours','estimate':'Estimation indicative, pas une date certaine.',
+'cycle':'Durée habituelle du cycle','days':'jours','estimate':'Estimation indicative, pas une date certaine.','countdown':'Temps restant estimé','dueToday':'La date estimée est aujourd’hui','overdue':'Date estimée dépassée de',
 'logday':'Journal quotidien','mood':'Humeur','pain':'Niveau de douleur','symptom':'Symptômes',
 'notes':'Notes','save':'Enregistrer','saved':'Enregistré','privacy':'Vos données restent sur cet appareil.',
 'period':'Règles','predicted':'Date estimée','flow':'Flux','low':'Léger','medium':'Moyen','high':'Abondant',
 'calm':'Calme','happy':'Heureuse','tired':'Fatiguée','anxious':'Anxieuse','sad':'Triste',
 'cramps':'Crampes','headache':'Mal de tête','bloating':'Ballonnements','acne':'Acné','tender':'Sensibilité des seins',
 'none':'Aucun','reminder':'Rappels','reminderInfo':'Les rappels seront activés après configuration des autorisations de notification.',
-'export':'Exporter les données','exportInfo':'L’export PDF et la sauvegarde chiffrée seront ajoutés ultérieurement.',
-'stats':'Statistiques du cycle','monthly':'Débuts des règles ce mois-ci','recorded':'Intervalles enregistrés','trend':'Évolution de la durée du cycle','notEnough':'Enregistrez au moins deux débuts de règles pour afficher le graphique.'},
+'export':'Exporter les données','exportInfo':'L’export PDF et la sauvegarde chiffrée seront ajoutés ultérieurement.'},
 'en': {'home':'Home','calendar':'Calendar','symptoms':'Symptoms','profile':'Settings',
 'hello':'Hello','subtitle':'Care for yourself, at your own pace.','next':'Next period estimate',
 'add':'Log period start','history':'Cycle history','empty':'No data yet.',
-'cycle':'Usual cycle length','days':'days','estimate':'An estimate only, not a confirmed date.',
+'cycle':'Usual cycle length','days':'days','estimate':'An estimate only, not a confirmed date.','countdown':'Estimated time remaining','dueToday':'The estimated date is today','overdue':'Estimated date passed by',
 'logday':'Daily log','mood':'Mood','pain':'Pain level','symptom':'Symptoms',
 'notes':'Notes','save':'Save','saved':'Saved','privacy':'Your data stays on this device.',
 'period':'Period','predicted':'Estimated','flow':'Flow','low':'Light','medium':'Medium','high':'Heavy',
 'calm':'Calm','happy':'Happy','tired':'Tired','anxious':'Anxious','sad':'Sad',
 'cramps':'Cramps','headache':'Headache','bloating':'Bloating','acne':'Acne','tender':'Breast tenderness',
 'none':'None','reminder':'Reminders','reminderInfo':'Reminders can be enabled after device notification permissions are configured.',
-'export':'Export data','exportInfo':'PDF export and encrypted backup can be added in a later release.',
-'stats':'Cycle statistics','monthly':'Period starts this month','recorded':'Recorded intervals','trend':'Cycle length trend','notEnough':'Log at least two period starts to display the chart.'}
+'export':'Export data','exportInfo':'PDF export and encrypted backup can be added in a later release.'}
 };
 
 class Home extends StatefulWidget {
@@ -262,31 +259,25 @@ class _HomeState extends State<Home> {
     for(int i=1;i<a.length;i++){final n=a[i].difference(a[i-1]).inDays;if(n>=15&&n<=60)gaps.add(n);}
     return gaps.isEmpty?28:(gaps.reduce((x,y)=>x+y)/gaps.length).round();
   }
-  DateTime? get next=>starts.isEmpty?null:starts.first.add(Duration(days:avg));
-  int? get daysUntilNext {
-  final estimate = next;
-  if (estimate == null) return null;
-
-  final today = DateTime.now();
-  final todayOnly = DateTime(today.year, today.month, today.day);
-  final estimateOnly =
-      DateTime(estimate.year, estimate.month, estimate.day);
-
-  return estimateOnly.difference(todayOnly).inDays;
-}
-
-  List<int> get cycleLengths {
-    final chronological = starts.toList()..sort((a,b)=>a.compareTo(b));
-    final values = <int>[];
-    for (var i = 1; i < chronological.length; i++) {
-      final days = chronological[i].difference(chronological[i-1]).inDays;
-      if (days >= 15 && days <= 60) values.add(days);
+  DateTime? get next {
+    if (starts.isEmpty) return null;
+    final today = DateTime.now();
+    final todayOnly = DateTime(today.year, today.month, today.day);
+    var estimate = starts.first.add(Duration(days: avg));
+    while (estimate.isBefore(todayOnly)) {
+      estimate = estimate.add(Duration(days: avg));
     }
-    return values.length > 6 ? values.sublist(values.length - 6) : values;
+    return estimate;
   }
 
-  int get startsThisMonth => starts.where((d) =>
-    d.year == DateTime.now().year && d.month == DateTime.now().month).length;
+  int? get daysUntilNext {
+    final estimate = next;
+    if (estimate == null) return null;
+    final today = DateTime.now();
+    final todayOnly = DateTime(today.year, today.month, today.day);
+    final estimateOnly = DateTime(estimate.year, estimate.month, estimate.day);
+    return estimateOnly.difference(todayOnly).inDays;
+  }
   Future<void> addPeriod() async {
     final now=DateTime.now();
     final d=await showDatePicker(context:context,initialDate:now,firstDate:DateTime(now.year-4),lastDate:DateTime(now.year+1));
@@ -332,31 +323,20 @@ class _HomeState extends State<Home> {
         const SizedBox(height:10),
         Text(next==null?'—':DateFormat('d MMMM yyyy',lang).format(next!),style:const TextStyle(fontSize:24,fontWeight:FontWeight.w800,color:plum)),
         const SizedBox(height:8),
-if (daysUntilNext != null) ...[
-  Text(
-    daysUntilNext! == 0
-        ? t('dueToday')
-        : daysUntilNext! > 0
-            ? '${t('countdown')}: ${daysUntilNext!} ${t('days')}'
-            : '${t('overdue')}: ${daysUntilNext!.abs()} ${t('days')}',
-    style: const TextStyle(
-      fontSize: 16,
-      fontWeight: FontWeight.w700,
-      color: plum,
-    ),
-  ),
-  const SizedBox(height:6),
-],
-Text(t('estimate'),style:const TextStyle(color:plum)),
-        'countdown':'الوقت المتبقي تقريباً',
-'dueToday':'التاريخ المتوقع هو اليوم',
-'overdue':'تجاوز التاريخ المتوقع بـ',
-        'countdown':'Temps restant estimé',
-'dueToday':'La date estimée est aujourd’hui',
-'overdue':'Date estimée dépassée de',
-        'countdown':'Estimated time remaining',
-'dueToday':'The estimated date is today',
-'overdue':'Estimated date passed by',
+        if (daysUntilNext != null) ...[
+          Text(
+            daysUntilNext! == 0
+                ? t('dueToday')
+                : '${t('countdown')}: ${daysUntilNext!} ${t('days')}',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: plum,
+            ),
+          ),
+          const SizedBox(height: 6),
+        ],
+        Text(t('estimate'),style:const TextStyle(color:plum)),
       ])),
     const SizedBox(height:14),
     Card(elevation:0,color:Colors.white,child:Padding(padding:const EdgeInsets.all(16),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
@@ -369,31 +349,7 @@ Text(t('estimate'),style:const TextStyle(color:plum)),
     const SizedBox(height:12),Text(t('history'),style:const TextStyle(fontSize:18,fontWeight:FontWeight.bold)),
     if(starts.isEmpty)Text(t('empty')),
     ...starts.take(4).map((d)=>ListTile(leading:const Icon(Icons.water_drop_outlined,color:rose),title:Text(DateFormat('d MMM yyyy',lang).format(d)))),
-    const SizedBox(height:18),
-    Text(t('stats'),style:const TextStyle(fontSize:18,fontWeight:FontWeight.bold,color:plum)),
-    const SizedBox(height:8),
-    Card(elevation:0,color:Colors.white,child:Padding(padding:const EdgeInsets.all(16),child:Column(
-      crossAxisAlignment:CrossAxisAlignment.start,children:[
-        _statLine(t('monthly'), startsThisMonth.toString()),
-        const Divider(height:20),
-        _statLine(t('recorded'), cycleLengths.length.toString()),
-        const SizedBox(height:16),
-        Text(t('trend'),style:const TextStyle(fontWeight:FontWeight.w700,color:plum)),
-        const SizedBox(height:12),
-        if (cycleLengths.isEmpty)
-          Text(t('notEnough'),style:const TextStyle(color:Colors.black54))
-        else
-          SizedBox(height:170,width:double.infinity,child:CycleTrendChart(values:cycleLengths)),
-        const SizedBox(height:8),
-        Text(t('estimate'),style:const TextStyle(fontSize:11,color:Colors.black54)),
-      ],
-    ))),
   ]);
-
-  Widget _statLine(String label, String value) => Row(
-    mainAxisAlignment:MainAxisAlignment.spaceBetween,
-    children:[Expanded(child:Text(label)),Text(value,style:const TextStyle(fontWeight:FontWeight.bold,color:plum))],
-  );
 
   Widget calendarPage(){
     final first=DateTime(month.year,month.month,1);
@@ -453,71 +409,6 @@ Text(t('estimate'),style:const TextStyle(color:plum)),
     const SizedBox(height:12),
     const Text('LunaCare ne remplace pas un avis médical. Les prévisions du cycle ne sont pas une méthode contraceptive.',style:TextStyle(color:Colors.black54,fontSize:12)),
   ]);
-}
-
-class CycleTrendChart extends StatelessWidget {
-  final List<int> values;
-  const CycleTrendChart({super.key, required this.values});
-
-  @override
-  Widget build(BuildContext context) {
-    if (values.isEmpty) return const SizedBox.shrink();
-    return CustomPaint(
-      painter: _CycleTrendPainter(values),
-      child: const SizedBox.expand(),
-    );
-  }
-}
-
-class _CycleTrendPainter extends CustomPainter {
-  final List<int> values;
-  _CycleTrendPainter(this.values);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (values.isEmpty || size.width <= 0 || size.height <= 0) return;
-    const minDays = 15.0;
-    const maxDays = 60.0;
-    final left = 24.0;
-    final right = size.width - 12.0;
-    final top = 12.0;
-    final bottom = size.height - 18.0;
-    final gridPaint = Paint()..color = const Color(0xFFEFE7ED)..strokeWidth = 1;
-    final linePaint = Paint()..color = rose..strokeWidth = 3
-      ..style = PaintingStyle.stroke..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round;
-    final dotPaint = Paint()..color = rose..style = PaintingStyle.fill;
-    for (var i = 0; i < 4; i++) {
-      final y = top + (bottom - top) * i / 3;
-      canvas.drawLine(Offset(left, y), Offset(right, y), gridPaint);
-    }
-    final points = <Offset>[];
-    for (var i = 0; i < values.length; i++) {
-      final x = values.length == 1
-          ? (left + right) / 2
-          : left + (right - left) * i / (values.length - 1);
-      final bounded = values[i].clamp(minDays.toInt(), maxDays.toInt()).toDouble();
-      final y = bottom - (bounded - minDays) / (maxDays - minDays) * (bottom - top);
-      points.add(Offset(x, y));
-    }
-    if (points.length > 1) {
-      final path = Path()..moveTo(points.first.dx, points.first.dy);
-      for (final point in points.skip(1)) { path.lineTo(point.dx, point.dy); }
-      canvas.drawPath(path, linePaint);
-    }
-    for (var i = 0; i < points.length; i++) {
-      canvas.drawCircle(points[i], 5, dotPaint);
-      final label = TextPainter(
-        text: TextSpan(text: '${values[i]}', style: const TextStyle(fontSize:10,color:plum,fontWeight:FontWeight.w600)),
-        textDirection: ui.TextDirection.ltr,
-      )..layout();
-      final labelX = (points[i].dx - label.width / 2).clamp(0.0, size.width - label.width);
-      final labelY = (points[i].dy - 19).clamp(0.0, size.height - label.height);
-      label.paint(canvas, Offset(labelX, labelY));
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _CycleTrendPainter oldDelegate) => oldDelegate.values != values;
 }
 
 class SymptomEditor extends StatefulWidget {
