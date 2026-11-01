@@ -30,15 +30,18 @@ jobs:
           cache: true
 
       
+      
       - name: Generate Android files
         run: flutter create --platforms=android --project-name lunacare .
 
-      -       - name: Enable core library desugaring
+      - name: Enable core library desugaring
         run: |
           sed -i '/compileOptions {/a\        isCoreLibraryDesugaringEnabled = true' android/app/build.gradle.kts
           sed -i '/dependencies {/a\    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")' android/app/build.gradle.kts
+
       - name: Install dependencies
         run: flutter pub get
+
 
       - name: Build Android APK
         run: flutter build apk --release
