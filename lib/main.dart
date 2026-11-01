@@ -201,9 +201,9 @@ class _HomeState extends State<Home> {
   
   @override
   Widget build(BuildContext context) => Directionality(
-    textDirection: lang == 'ar'
-        ? TextDirection.rtl
-        : TextDirection.ltr,
+    textDirection: lang == 'ar' ? const 
+    TextDirection(1) : const 
+    TextDirection(0),
     child: Scaffold(
       appBar: AppBar(
         title: const Text(
