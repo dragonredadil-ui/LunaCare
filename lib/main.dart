@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'dart:ui' as ui;
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'services/secure_vault.dart';
 import 'services/biometric_service.dart';
 import 'services/reminder_service.dart';
@@ -54,24 +54,34 @@ class _LunaCareBootstrapState extends State<LunaCareBootstrap> {
               body: SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.all(24),
-                  child: ListView(children: [
-                    const Icon(Icons.error_outline,
-                        size: 52, color: Colors.red),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'LunaCare startup error',
-                      style: TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 12),
-                    SelectableText(snapshot.error.toString()),
-                    const SizedBox(height: 20),
-                    FilledButton(
-                      onPressed: () =>
-                          setState(() => initialization = _initialize()),
-                      child: const Text('Try again'),
-                    ),
-                  ]),
+                  child: ListView(
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        size: 52,
+                        color: Colors.red,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'LunaCare startup error',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SelectableText(snapshot.error.toString()),
+                      const SizedBox(height: 20),
+                      FilledButton(
+                        onPressed: () {
+                          setState(() {
+                            initialization = _initialize();
+                          });
+                        },
+                        child: const Text('Try again'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
@@ -80,7 +90,9 @@ class _LunaCareBootstrapState extends State<LunaCareBootstrap> {
           if (snapshot.connectionState != ConnectionState.done) {
             return const Scaffold(
               backgroundColor: Color(0xFFFFF8FB),
-              body: Center(child: CircularProgressIndicator()),
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
             );
           }
 
@@ -103,12 +115,22 @@ const strings = {
     'calendar': 'التقويم',
     'symptoms': 'الأعراض',
     'profile': 'الإعدادات',
+    'settings': 'الإعدادات',
     'hello': 'مرحباً بكِ',
+    'welcome': 'مرحباً بكِ في LunaCare',
     'subtitle': 'اعتني بصحتك على راحتك.',
     'next': 'الدورة القادمة المتوقعة',
     'add': 'تسجيل بداية الدورة',
+    'logPeriod': 'تسجيل الدورة',
     'history': 'سجل الدورات',
     'empty': 'لا توجد بيانات بعد.',
+    'noPeriod': 'لم يتم تسجيل أي دورة بعد.',
+    'noHistory': 'لا يوجد سجل للدورات بعد.',
+    'lastPeriod': 'آخر بداية للدورة',
+    'endNotRecorded': 'لم يتم تسجيل نهاية الدورة',
+    'periodEnd': 'نهاية الدورة',
+    'calendarDescription': 'شاهدي أيام الدورة والتوقعات',
+    'symptomsDescription': 'سجلي الأعراض والمزاج اليومي',
     'cycle': 'طول الدورة المعتاد',
     'days': 'يوماً',
     'estimate': 'توقع تقريبي وليس موعداً مؤكداً.',
@@ -118,11 +140,13 @@ const strings = {
     'logday': 'تسجيل يومي',
     'mood': 'المزاج',
     'pain': 'مستوى الألم',
+    'energy': 'الطاقة',
     'symptom': 'الأعراض',
     'notes': 'ملاحظات',
     'save': 'حفظ',
     'saved': 'تم الحفظ',
-    'privacy': 'بياناتك تبقى على هذا الجهاز.',
+    'privacy': 'الخصوصية',
+    'localDataPrivacy': 'بياناتك محفوظة محلياً على هذا الجهاز.',
     'period': 'الدورة',
     'predicted': 'موعد متوقع',
     'flow': 'تدفق الدورة',
@@ -141,11 +165,11 @@ const strings = {
     'tender': 'حساسية الثدي',
     'none': 'لا شيء',
     'reminder': 'التذكيرات',
-    'reminderInfo':
-        'إعداد التذكيرات سيُفعّل بعد ضبط صلاحيات الإشعارات على الجهاز.',
+    'reminders': 'التذكيرات',
+    'reminderInfo': 'يمكن ضبط تذكير بتاريخ الدورة المتوقع.',
     'export': 'تصدير البيانات',
-    'exportInfo':
-        'يمكن إضافة تصدير PDF ونسخة احتياطية مشفرة في مرحلة لاحقة.',
+    'exportPdf': 'تصدير تقرير PDF',
+    'exportInfo': 'تصدير بيانات الدورة والأعراض.',
     'markStart': 'تحديد بداية الدورة',
     'markEnd': 'تحديد نهاية الدورة',
     'startSaved': 'تم تسجيل بداية الدورة.',
@@ -154,6 +178,13 @@ const strings = {
     'endBeforeStart': 'تاريخ النهاية لا يمكن أن يسبق تاريخ البداية.',
     'alreadyStart': 'هذا التاريخ مسجل كبداية دورة بالفعل.',
     'alreadyEnd': 'هذا التاريخ مسجل كنهاية دورة بالفعل.',
+    'logSymptoms': 'تسجيل الأعراض',
+    'periodDays': 'أيام الدورة',
+    'predictedDays': 'الأيام المتوقعة',
+    'biometricLock': 'التحقق بالبصمة',
+    'biometricDescription': 'التحقق من توفر المصادقة البيومترية.',
+    'language': 'اللغة',
+    'chooseLanguage': 'اختاري اللغة',
   },
 
   'fr': {
@@ -161,12 +192,22 @@ const strings = {
     'calendar': 'Calendrier',
     'symptoms': 'Symptômes',
     'profile': 'Paramètres',
+    'settings': 'Paramètres',
     'hello': 'Bonjour',
+    'welcome': 'Bienvenue sur LunaCare',
     'subtitle': 'Prenez soin de vous, à votre rythme.',
     'next': 'Prochaines règles estimées',
     'add': 'Enregistrer le début des règles',
+    'logPeriod': 'Enregistrer les règles',
     'history': 'Historique',
     'empty': 'Aucune donnée pour le moment.',
+    'noPeriod': 'Aucune période enregistrée.',
+    'noHistory': 'Aucun historique pour le moment.',
+    'lastPeriod': 'Dernier début des règles',
+    'endNotRecorded': 'Fin non enregistrée',
+    'periodEnd': 'Fin des règles',
+    'calendarDescription': 'Consulter le calendrier et les estimations',
+    'symptomsDescription': 'Suivre les symptômes et l’humeur',
     'cycle': 'Durée habituelle du cycle',
     'days': 'jours',
     'estimate': 'Estimation indicative, pas une date certaine.',
@@ -176,11 +217,13 @@ const strings = {
     'logday': 'Journal quotidien',
     'mood': 'Humeur',
     'pain': 'Niveau de douleur',
+    'energy': 'Énergie',
     'symptom': 'Symptômes',
     'notes': 'Notes',
     'save': 'Enregistrer',
     'saved': 'Enregistré',
-    'privacy': 'Vos données restent sur cet appareil.',
+    'privacy': 'Confidentialité',
+    'localDataPrivacy': 'Vos données restent sur cet appareil.',
     'period': 'Règles',
     'predicted': 'Date estimée',
     'flow': 'Flux',
@@ -199,11 +242,11 @@ const strings = {
     'tender': 'Sensibilité des seins',
     'none': 'Aucun',
     'reminder': 'Rappels',
-    'reminderInfo':
-        'Les rappels seront activés après configuration des autorisations de notification.',
+    'reminders': 'Rappels',
+    'reminderInfo': 'Configurer un rappel pour la date estimée.',
     'export': 'Exporter les données',
-    'exportInfo':
-        'L’export PDF et la sauvegarde chiffrée seront ajoutés ultérieurement.',
+    'exportPdf': 'Exporter le rapport PDF',
+    'exportInfo': 'Exporter les données du cycle et les symptômes.',
     'markStart': 'Marquer le début des règles',
     'markEnd': 'Marquer la fin des règles',
     'startSaved': 'Début des règles enregistré.',
@@ -212,6 +255,13 @@ const strings = {
     'endBeforeStart': 'La fin ne peut pas précéder le début.',
     'alreadyStart': 'Cette date est déjà enregistrée comme début.',
     'alreadyEnd': 'Cette date est déjà enregistrée comme fin.',
+    'logSymptoms': 'Enregistrer les symptômes',
+    'periodDays': 'Jours des règles',
+    'predictedDays': 'Jours estimés',
+    'biometricLock': 'Authentification biométrique',
+    'biometricDescription': 'Vérifier la disponibilité de la biométrie.',
+    'language': 'Langue',
+    'chooseLanguage': 'Choisir la langue',
   },
 
   'en': {
@@ -219,12 +269,22 @@ const strings = {
     'calendar': 'Calendar',
     'symptoms': 'Symptoms',
     'profile': 'Settings',
+    'settings': 'Settings',
     'hello': 'Hello',
+    'welcome': 'Welcome to LunaCare',
     'subtitle': 'Care for yourself, at your own pace.',
     'next': 'Next period estimate',
     'add': 'Log period start',
+    'logPeriod': 'Log period',
     'history': 'Cycle history',
     'empty': 'No data yet.',
+    'noPeriod': 'No period recorded yet.',
+    'noHistory': 'No cycle history yet.',
+    'lastPeriod': 'Last period start',
+    'endNotRecorded': 'End date not recorded',
+    'periodEnd': 'Period end',
+    'calendarDescription': 'View period days and estimates',
+    'symptomsDescription': 'Track symptoms and daily mood',
     'cycle': 'Usual cycle length',
     'days': 'days',
     'estimate': 'An estimate only, not a confirmed date.',
@@ -234,11 +294,13 @@ const strings = {
     'logday': 'Daily log',
     'mood': 'Mood',
     'pain': 'Pain level',
+    'energy': 'Energy',
     'symptom': 'Symptoms',
     'notes': 'Notes',
     'save': 'Save',
     'saved': 'Saved',
-    'privacy': 'Your data stays on this device.',
+    'privacy': 'Privacy',
+    'localDataPrivacy': 'Your data stays on this device.',
     'period': 'Period',
     'predicted': 'Estimated',
     'flow': 'Flow',
@@ -257,11 +319,11 @@ const strings = {
     'tender': 'Breast tenderness',
     'none': 'None',
     'reminder': 'Reminders',
-    'reminderInfo':
-        'Reminders can be enabled after device notification permissions are configured.',
+    'reminders': 'Reminders',
+    'reminderInfo': 'Set a reminder for the estimated period date.',
     'export': 'Export data',
-    'exportInfo':
-        'PDF export and encrypted backup can be added in a later release.',
+    'exportPdf': 'Export PDF report',
+    'exportInfo': 'Export cycle and symptom data.',
     'markStart': 'Mark period start',
     'markEnd': 'Mark period end',
     'startSaved': 'Period start saved.',
@@ -270,6 +332,13 @@ const strings = {
     'endBeforeStart': 'The end date cannot be before the start date.',
     'alreadyStart': 'This date is already recorded as a start.',
     'alreadyEnd': 'This date is already recorded as an end.',
+    'logSymptoms': 'Log symptoms',
+    'periodDays': 'Period days',
+    'predictedDays': 'Predicted days',
+    'biometricLock': 'Biometric authentication',
+    'biometricDescription': 'Check biometric authentication availability.',
+    'language': 'Language',
+    'chooseLanguage': 'Choose language',
   },
 };
 class LunaCareApp extends StatefulWidget {
@@ -293,7 +362,7 @@ class _LunaCareAppState extends State<LunaCareApp> {
         ),
         home: Home(
           language: language,
-          onLanguage: (v) => setState(() => language = v),
+          onLanguage: (value) => setState(() => language = value),
         ),
       );
 }
@@ -315,7 +384,6 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   List<DateTime> starts = [];
   List<DateTime> ends = [];
-
   Map<String, Map<String, dynamic>> logs = {};
 
   DateTime month = DateTime(DateTime.now().year, DateTime.now().month);
@@ -328,24 +396,23 @@ class _HomeState extends State<Home> {
   final ReminderService reminders = ReminderService();
   final PdfReportService pdfReports = PdfReportService();
 
-  bool notificationsReady = false;
-
   String get lang => widget.language;
-  String t(String k) => strings[lang]?[k] ?? strings['en']![k]!;
 
-  DateTime dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+  String t(String key) =>
+      strings[lang]?[key] ?? strings['en']![key]!;
+
+  DateTime dateOnly(DateTime date) =>
+      DateTime(date.year, date.month, date.day);
+
+  String key(DateTime date) =>
+      DateFormat('yyyy-MM-dd').format(date);
 
   @override
   void initState() {
     super.initState();
     load();
-
-    reminders.initialize().then((_) {
-      if (mounted) setState(() => notificationsReady = true);
-    }).catchError((_) {});
+    reminders.initialize().catchError((_) {});
   }
-
-  String key(DateTime d) => DateFormat('yyyy-MM-dd').format(d);
 
   Future<void> load() async {
     try {
@@ -353,36 +420,41 @@ class _HomeState extends State<Home> {
 
       if (data.isNotEmpty) {
         starts = (data['starts'] as List? ?? [])
-            .map((v) => dateOnly(DateTime.parse(v.toString())))
+            .map((value) => dateOnly(DateTime.parse(value.toString())))
             .toList()
           ..sort((a, b) => b.compareTo(a));
 
-        // Compatibility with older saved data.
         ends = (data['ends'] as List? ?? [])
-            .map((v) => dateOnly(DateTime.parse(v.toString())))
+            .map((value) => dateOnly(DateTime.parse(value.toString())))
             .toList()
           ..sort((a, b) => a.compareTo(b));
 
         final rawLogs = data['logs'] as Map? ?? {};
         logs = rawLogs.map(
-          (k, v) => MapEntry(k, Map<String, dynamic>.from(v as Map)),
+          (k, v) => MapEntry(
+            k.toString(),
+            Map<String, dynamic>.from(v as Map),
+          ),
         );
       } else {
-        final p = await SharedPreferences.getInstance();
+        final prefs = await SharedPreferences.getInstance();
 
-        starts = (p.getStringList('period_starts_v2') ?? [])
-            .map((v) => dateOnly(DateTime.parse(v)))
+        starts = (prefs.getStringList('period_starts_v2') ?? [])
+            .map((value) => dateOnly(DateTime.parse(value)))
             .toList()
           ..sort((a, b) => b.compareTo(a));
 
         ends = [];
 
-        final raw = p.getString('daily_logs_v2');
+        final raw = prefs.getString('daily_logs_v2');
 
         if (raw != null) {
           try {
             logs = (jsonDecode(raw) as Map<String, dynamic>).map(
-              (k, v) => MapEntry(k, Map<String, dynamic>.from(v)),
+              (k, v) => MapEntry(
+                k,
+                Map<String, dynamic>.from(v as Map),
+              ),
             );
           } catch (_) {}
         }
@@ -391,8 +463,8 @@ class _HomeState extends State<Home> {
           await persist();
         }
 
-        await p.remove('period_starts_v2');
-        await p.remove('daily_logs_v2');
+        await prefs.remove('period_starts_v2');
+        await prefs.remove('daily_logs_v2');
       }
     } catch (_) {
       if (mounted) {
@@ -409,8 +481,8 @@ class _HomeState extends State<Home> {
 
   Future<void> persist() async {
     await vault.saveJson({
-      'starts': starts.map((d) => d.toIso8601String()).toList(),
-      'ends': ends.map((d) => d.toIso8601String()).toList(),
+      'starts': starts.map((date) => date.toIso8601String()).toList(),
+      'ends': ends.map((date) => date.toIso8601String()).toList(),
       'logs': logs,
     });
   }
@@ -424,29 +496,28 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> markSelectedStart() async {
-    final d = dateOnly(selected);
+    final date = dateOnly(selected);
 
-    if (starts.any((x) => key(x) == key(d))) {
+    if (starts.any((item) => key(item) == key(date))) {
       showMessage(t('alreadyStart'));
       return;
     }
 
-    starts.add(d);
+    starts.add(date);
     starts.sort((a, b) => b.compareTo(a));
 
     await persist();
 
-    if (mounted) {
-      setState(() {});
-      showMessage(t('startSaved'));
-    }
+    if (!mounted) return;
+    setState(() {});
+    showMessage(t('startSaved'));
   }
 
   Future<void> markSelectedEnd() async {
-    final d = dateOnly(selected);
+    final date = dateOnly(selected);
 
     final previousStarts = starts
-        .where((s) => !dateOnly(s).isAfter(d))
+        .where((start) => !dateOnly(start).isAfter(date))
         .map(dateOnly)
         .toList()
       ..sort((a, b) => b.compareTo(a));
@@ -458,51 +529,45 @@ class _HomeState extends State<Home> {
 
     final matchingStart = previousStarts.first;
 
-    if (d.isBefore(matchingStart)) {
-      showMessage(t('endBeforeStart'));
-      return;
-    }
-
-    if (ends.any((x) => key(x) == key(d))) {
-      showMessage(t('alreadyEnd'));
-      return;
-    }
-
     final laterStarts = starts
         .map(dateOnly)
-        .where((s) => s.isAfter(matchingStart))
+        .where((start) => start.isAfter(matchingStart))
         .toList()
       ..sort((a, b) => a.compareTo(b));
 
     if (laterStarts.isNotEmpty &&
-        !d.isBefore(laterStarts.first)) {
+        !date.isBefore(laterStarts.first)) {
       showMessage(t('endBeforeStart'));
+      return;
+    }
+
+    if (ends.any((item) => key(item) == key(date))) {
+      showMessage(t('alreadyEnd'));
       return;
     }
 
     final oldEnd = periodEndFor(matchingStart);
 
     if (oldEnd != null) {
-      ends.removeWhere((x) => key(x) == key(oldEnd));
+      ends.removeWhere((item) => key(item) == key(oldEnd));
     }
 
-    ends.add(d);
+    ends.add(date);
     ends.sort((a, b) => a.compareTo(b));
 
     await persist();
 
-    if (mounted) {
-      setState(() {});
-      showMessage(t('endSaved'));
-    }
+    if (!mounted) return;
+    setState(() {});
+    showMessage(t('endSaved'));
   }
 
   DateTime? periodEndFor(DateTime start) {
-    final s = dateOnly(start);
+    final normalizedStart = dateOnly(start);
 
     final laterStarts = starts
         .map(dateOnly)
-        .where((x) => x.isAfter(s))
+        .where((item) => item.isAfter(normalizedStart))
         .toList()
       ..sort((a, b) => a.compareTo(b));
 
@@ -511,9 +576,9 @@ class _HomeState extends State<Home> {
 
     final matchingEnds = ends
         .map(dateOnly)
-        .where((e) =>
-            !e.isBefore(s) &&
-            (nextStart == null || e.isBefore(nextStart)))
+        .where((end) =>
+            !end.isBefore(normalizedStart) &&
+            (nextStart == null || end.isBefore(nextStart)))
         .toList()
       ..sort((a, b) => a.compareTo(b));
 
@@ -556,15 +621,15 @@ class _HomeState extends State<Home> {
 
   Future<void> unlockWithBiometrics() async {
     final available = await biometric.isAvailable();
-    final ok = available && await biometric.authenticate();
+    final success = available && await biometric.authenticate();
 
-    if (mounted) {
-      showMessage(
-        ok
-            ? 'Authentication successful.'
-            : 'Biometric authentication is unavailable or was not completed.',
-      );
-    }
+    if (!mounted) return;
+
+    showMessage(
+      success
+          ? 'Authentication successful.'
+          : 'Biometric authentication is unavailable or was not completed.',
+    );
   }
 
   Future<void> exportPdf() async {
@@ -578,26 +643,28 @@ class _HomeState extends State<Home> {
   int get avg {
     if (starts.length < 2) return 28;
 
-    final a = starts.reversed.toList();
+    final ordered = starts.reversed.toList();
     final gaps = <int>[];
 
-    for (int i = 1; i < a.length; i++) {
-      final n =
-          dateOnly(a[i]).difference(dateOnly(a[i - 1])).inDays;
+    for (int i = 1; i < ordered.length; i++) {
+      final difference = dateOnly(ordered[i])
+          .difference(dateOnly(ordered[i - 1]))
+          .inDays;
 
-      if (n >= 15 && n <= 60) gaps.add(n);
+      if (difference >= 15 && difference <= 60) {
+        gaps.add(difference);
+      }
     }
 
-    return gaps.isEmpty
-        ? 28
-        : (gaps.reduce((x, y) => x + y) / gaps.length).round();
+    if (gaps.isEmpty) return 28;
+
+    return (gaps.reduce((a, b) => a + b) / gaps.length).round();
   }
 
   DateTime? get next {
     if (starts.isEmpty) return null;
 
     final today = dateOnly(DateTime.now());
-
     var estimate = dateOnly(starts.first).add(Duration(days: avg));
 
     while (estimate.isBefore(today)) {
@@ -616,27 +683,26 @@ class _HomeState extends State<Home> {
         .inDays;
   }
 
-  // Homepage button: unchanged behavior.
   Future<void> addPeriod() async {
     final now = DateTime.now();
 
-    final d = await showDatePicker(
+    final date = await showDatePicker(
       context: context,
       initialDate: now,
       firstDate: DateTime(now.year - 4),
       lastDate: DateTime(now.year + 1),
     );
 
-    if (d == null) return;
+    if (date == null) return;
 
-    final v = dateOnly(d);
+    final value = dateOnly(date);
 
-    if (starts.any((x) => key(x) == key(v))) {
+    if (starts.any((item) => key(item) == key(value))) {
       showMessage(t('alreadyStart'));
       return;
     }
 
-    starts.add(v);
+    starts.add(value);
     starts.sort((a, b) => b.compareTo(a));
 
     await persist();
@@ -644,21 +710,23 @@ class _HomeState extends State<Home> {
     if (mounted) setState(() {});
   }
 
-  bool isPeriod(DateTime d) {
-    final day = dateOnly(d);
+  bool isPeriod(DateTime date) {
+    final day = dateOnly(date);
 
     for (final start in starts) {
-      final s = dateOnly(start);
-      final end = periodEndFor(s);
+      final normalizedStart = dateOnly(start);
+      final end = periodEndFor(normalizedStart);
 
       if (end != null) {
-        if (!day.isBefore(s) && !day.isAfter(end)) {
+        if (!day.isBefore(normalizedStart) &&
+            !day.isAfter(end)) {
           return true;
         }
       } else {
-        // Keep the original five-day estimate if no end was recorded.
-        if (!day.isBefore(s) &&
-            day.isBefore(s.add(const Duration(days: 5)))) {
+        if (!day.isBefore(normalizedStart) &&
+            day.isBefore(
+              normalizedStart.add(const Duration(days: 5)),
+            )) {
           return true;
         }
       }
@@ -667,23 +735,24 @@ class _HomeState extends State<Home> {
     return false;
   }
 
-  bool isPredicted(DateTime d) {
+  bool isPredicted(DateTime date) {
     final estimate = next;
     if (estimate == null) return false;
 
-    final day = dateOnly(d);
+    final day = dateOnly(date);
     final start = dateOnly(estimate);
 
     return !day.isBefore(start) &&
         day.isBefore(start.add(const Duration(days: 5)));
   }
-  @override
+    @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: lang == 'ar' ? TextDirection.rtl : TextDirection.ltr,
+      textDirection:
+          lang == 'ar' ? TextDirection.rtl : TextDirection.ltr,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('LunaCare'),
+          title: const Text('LunaCare'),
           centerTitle: true,
         ),
         body: IndexedStack(
@@ -702,23 +771,23 @@ class _HomeState extends State<Home> {
           },
           destinations: [
             NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
+              icon: const Icon(Icons.home_outlined),
+              selectedIcon: const Icon(Icons.home),
               label: t('home'),
             ),
             NavigationDestination(
-              icon: Icon(Icons.calendar_month_outlined),
-              selectedIcon: Icon(Icons.calendar_month),
+              icon: const Icon(Icons.calendar_month_outlined),
+              selectedIcon: const Icon(Icons.calendar_month),
               label: t('calendar'),
             ),
             NavigationDestination(
-              icon: Icon(Icons.favorite_border),
-              selectedIcon: Icon(Icons.favorite),
+              icon: const Icon(Icons.favorite_border),
+              selectedIcon: const Icon(Icons.favorite),
               label: t('symptoms'),
             ),
             NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings),
+              icon: const Icon(Icons.settings_outlined),
+              selectedIcon: const Icon(Icons.settings),
               label: t('settings'),
             ),
           ],
@@ -729,6 +798,8 @@ class _HomeState extends State<Home> {
 
   Widget dashboard() {
     final latestStart = starts.isEmpty ? null : starts.first;
+    final estimate = next;
+    final remaining = daysUntilNext;
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -737,6 +808,8 @@ class _HomeState extends State<Home> {
           t('welcome'),
           style: Theme.of(context).textTheme.headlineSmall,
         ),
+        const SizedBox(height: 8),
+        Text(t('subtitle')),
         const SizedBox(height: 16),
 
         Card(
@@ -744,7 +817,11 @@ class _HomeState extends State<Home> {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                Icon(Icons.favorite, size: 38, color: Colors.pink),
+                const Icon(
+                  Icons.favorite,
+                  size: 38,
+                  color: rose,
+                ),
                 const SizedBox(height: 12),
                 Text(
                   latestStart == null
@@ -752,6 +829,32 @@ class _HomeState extends State<Home> {
                       : '${t('lastPeriod')}: ${DateFormat.yMd(lang).format(latestStart)}',
                   textAlign: TextAlign.center,
                 ),
+                const SizedBox(height: 12),
+                if (estimate != null) ...[
+                  Text(
+                    t('next'),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    DateFormat.yMMMMd(lang).format(estimate),
+                    style: Theme.of(context).textTheme.titleLarge,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 6),
+                  if (remaining != null)
+                    Text(
+                      remaining == 0
+                          ? t('dueToday')
+                          : '${t('countdown')}: $remaining ${t('days')}',
+                    ),
+                  const SizedBox(height: 8),
+                  Text(
+                    t('estimate'),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
@@ -770,7 +873,10 @@ class _HomeState extends State<Home> {
 
         Card(
           child: ListTile(
-            leading: const Icon(Icons.calendar_month, color: Colors.pink),
+            leading: const Icon(
+              Icons.calendar_month,
+              color: rose,
+            ),
             title: Text(t('calendar')),
             subtitle: Text(t('calendarDescription')),
             trailing: const Icon(Icons.chevron_right),
@@ -780,7 +886,10 @@ class _HomeState extends State<Home> {
 
         Card(
           child: ListTile(
-            leading: const Icon(Icons.favorite_border, color: Colors.pink),
+            leading: const Icon(
+              Icons.favorite_border,
+              color: rose,
+            ),
             title: Text(t('symptoms')),
             subtitle: Text(t('symptomsDescription')),
             trailing: const Icon(Icons.chevron_right),
@@ -789,6 +898,7 @@ class _HomeState extends State<Home> {
         ),
 
         const SizedBox(height: 16),
+
         Text(
           t('history'),
           style: Theme.of(context).textTheme.titleLarge,
@@ -799,17 +909,26 @@ class _HomeState extends State<Home> {
           Text(t('noHistory'))
         else
           ...starts.map(
-            (date) => Card(
-              child: ListTile(
-                leading: const Icon(Icons.water_drop, color: Colors.pink),
-                title: Text(DateFormat.yMMMMd(lang).format(date)),
-                subtitle: Text(
-                  periodEndFor(date) == null
-                      ? t('endNotRecorded')
-                      : '${t('periodEnd')}: ${DateFormat.yMd(lang).format(periodEndFor(date)!)}',
+            (date) {
+              final end = periodEndFor(date);
+
+              return Card(
+                child: ListTile(
+                  leading: const Icon(
+                    Icons.water_drop,
+                    color: rose,
+                  ),
+                  title: Text(
+                    DateFormat.yMMMMd(lang).format(date),
+                  ),
+                  subtitle: Text(
+                    end == null
+                        ? t('endNotRecorded')
+                        : '${t('periodEnd')}: ${DateFormat.yMd(lang).format(end)}',
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
       ],
     );
@@ -817,7 +936,8 @@ class _HomeState extends State<Home> {
 
   Widget calendarPage() {
     final firstDay = DateTime(month.year, month.month, 1);
-    final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
+    final daysInMonth =
+        DateTime(month.year, month.month + 1, 0).day;
     final offset = firstDay.weekday % 7;
 
     final weekdays = lang == 'ar'
@@ -866,7 +986,9 @@ class _HomeState extends State<Home> {
                 (day) => Center(
                   child: Text(
                     day,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               )
@@ -877,7 +999,8 @@ class _HomeState extends State<Home> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: offset + daysInMonth,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          gridDelegate:
+              const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 7,
             childAspectRatio: 0.9,
           ),
@@ -886,16 +1009,20 @@ class _HomeState extends State<Home> {
 
             final day = index - offset + 1;
             final date = DateTime(month.year, month.month, day);
-            final selected = DateUtils.isSameDay(date, selectedDate);
+
+            final isSelected =
+                DateUtils.isSameDay(date, selected);
             final period = isPeriod(date);
             final predicted = isPredicted(date);
 
             return GestureDetector(
-              onTap: () => setState(() => selectedDate = date),
+              onTap: () {
+                setState(() => selected = date);
+              },
               child: Container(
                 margin: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
-                  color: selected
+                  color: isSelected
                       ? Colors.pink
                       : period
                           ? Colors.pink.shade100
@@ -903,17 +1030,23 @@ class _HomeState extends State<Home> {
                               ? Colors.purple.shade100
                               : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
-                  border: selected
-                      ? Border.all(color: Colors.pink.shade900, width: 2)
+                  border: isSelected
+                      ? Border.all(
+                          color: Colors.pink.shade900,
+                          width: 2,
+                        )
                       : null,
                 ),
                 child: Center(
                   child: Text(
                     '$day',
                     style: TextStyle(
-                      color: selected ? Colors.white : Colors.black87,
-                      fontWeight:
-                          selected || period ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected
+                          ? Colors.white
+                          : Colors.black87,
+                      fontWeight: isSelected || period
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -926,6 +1059,7 @@ class _HomeState extends State<Home> {
         legend(),
 
         const SizedBox(height: 16),
+
         Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -933,7 +1067,7 @@ class _HomeState extends State<Home> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  DateFormat.yMMMMd(lang).format(selectedDate),
+                  DateFormat.yMMMMd(lang).format(selected),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 12),
@@ -995,9 +1129,8 @@ class _HomeState extends State<Home> {
       ],
     );
   }
-
-  Widget symptomsPage() {
-    final dateKey = DateFormat('yyyy-MM-dd').format(selectedDate);
+    Widget symptomsPage() {
+    final dateKey = key(selected);
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -1007,9 +1140,10 @@ class _HomeState extends State<Home> {
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(height: 8),
-        Text(DateFormat.yMMMMd(lang).format(selectedDate)),
+        Text(DateFormat.yMMMMd(lang).format(selected)),
         const SizedBox(height: 16),
         SymptomEditor(
+          key: ValueKey(dateKey),
           initialData: logs[dateKey] ?? {},
           onChanged: (data) {
             logs[dateKey] = data;
@@ -1021,6 +1155,36 @@ class _HomeState extends State<Home> {
     );
   }
 
+  Future<void> changeLanguage() async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(t('chooseLanguage')),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text('العربية'),
+              onTap: () => Navigator.pop(dialogContext, 'ar'),
+            ),
+            ListTile(
+              title: const Text('Français'),
+              onTap: () => Navigator.pop(dialogContext, 'fr'),
+            ),
+            ListTile(
+              title: const Text('English'),
+              onTap: () => Navigator.pop(dialogContext, 'en'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result != null) {
+      widget.onLanguage(result);
+    }
+  }
+
   Widget settingsPage() {
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -1030,37 +1194,30 @@ class _HomeState extends State<Home> {
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(height: 16),
-
-        SwitchListTile(
+        ListTile(
+          leading: const Icon(Icons.notifications_active),
           title: Text(t('reminders')),
-          value: remindersEnabled,
-          onChanged: (value) async {
-            setState(() => remindersEnabled = value);
-            await saveReminderSettings();
-          },
+          subtitle: Text(t('reminderInfo')),
+          onTap: askForReminder,
         ),
-
         ListTile(
           leading: const Icon(Icons.picture_as_pdf),
           title: Text(t('exportPdf')),
+          subtitle: Text(t('exportInfo')),
           onTap: exportPdf,
         ),
-
         ListTile(
           leading: const Icon(Icons.fingerprint),
           title: Text(t('biometricLock')),
           subtitle: Text(t('biometricDescription')),
-          onTap: checkBiometrics,
+          onTap: unlockWithBiometrics,
         ),
-
         const Divider(),
-
         ListTile(
           leading: const Icon(Icons.lock_outline),
           title: Text(t('privacy')),
           subtitle: Text(t('localDataPrivacy')),
         ),
-
         ListTile(
           leading: const Icon(Icons.language),
           title: Text(t('language')),
@@ -1090,11 +1247,30 @@ class SymptomEditor extends StatefulWidget {
 
 class _SymptomEditorState extends State<SymptomEditor> {
   late Map<String, dynamic> data;
+  late TextEditingController notesController;
 
   @override
   void initState() {
     super.initState();
     data = Map<String, dynamic>.from(widget.initialData);
+    notesController = TextEditingController(
+      text: data['notes'] as String? ?? '',
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant SymptomEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialData != widget.initialData) {
+      data = Map<String, dynamic>.from(widget.initialData);
+      notesController.text = data['notes'] as String? ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    notesController.dispose();
+    super.dispose();
   }
 
   String tr(String key) {
@@ -1105,6 +1281,9 @@ class _SymptomEditorState extends State<SymptomEditor> {
         'energy': 'الطاقة',
         'notes': 'ملاحظات',
         'save': 'حفظ',
+        'good': 'جيد',
+        'normal': 'عادي',
+        'low': 'منخفض',
       },
       'fr': {
         'mood': 'Humeur',
@@ -1112,6 +1291,9 @@ class _SymptomEditorState extends State<SymptomEditor> {
         'energy': 'Énergie',
         'notes': 'Notes',
         'save': 'Enregistrer',
+        'good': 'Bonne',
+        'normal': 'Normale',
+        'low': 'Basse',
       },
       'en': {
         'mood': 'Mood',
@@ -1119,6 +1301,9 @@ class _SymptomEditorState extends State<SymptomEditor> {
         'energy': 'Energy',
         'notes': 'Notes',
         'save': 'Save',
+        'good': 'Good',
+        'normal': 'Normal',
+        'low': 'Low',
       },
     };
 
@@ -1128,66 +1313,76 @@ class _SymptomEditorState extends State<SymptomEditor> {
 
   void update(String key, dynamic value) {
     setState(() => data[key] = value);
-    widget.onChanged(data);
+    widget.onChanged(Map<String, dynamic>.from(data));
   }
 
   @override
   Widget build(BuildContext context) {
+    final painValue = ((data['pain'] as num?)?.toDouble() ?? 0)
+        .clamp(0.0, 10.0)
+        .toDouble();
+    final energyValue = ((data['energy'] as num?)?.toDouble() ?? 5)
+        .clamp(0.0, 10.0)
+        .toDouble();
+
+    const moods = ['Good', 'Normal', 'Low'];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(tr('mood')),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: data['mood'] as String?,
-          items: ['Good', 'Normal', 'Low']
+          value: moods.contains(data['mood']) ? data['mood'] as String : null,
+          items: moods
               .map(
                 (value) => DropdownMenuItem(
                   value: value,
-                  child: Text(value),
+                  child: Text(tr(value.toLowerCase())),
                 ),
               )
               .toList(),
           onChanged: (value) => update('mood', value),
         ),
-
         const SizedBox(height: 16),
-        Text(tr('pain')),
+        Text('${tr('pain')}: ${painValue.round()}/10'),
         Slider(
-          value: (data['pain'] as num?)?.toDouble() ?? 0,
+          value: painValue,
           min: 0,
           max: 10,
           divisions: 10,
-          label: '${data['pain'] ?? 0}',
+          label: '${painValue.round()}',
           onChanged: (value) => update('pain', value.round()),
         ),
-
         const SizedBox(height: 16),
-        Text(tr('energy')),
+        Text('${tr('energy')}: ${energyValue.round()}/10'),
         Slider(
-          value: (data['energy'] as num?)?.toDouble() ?? 5,
+          value: energyValue,
           min: 0,
           max: 10,
           divisions: 10,
-          label: '${data['energy'] ?? 5}',
+          label: '${energyValue.round()}',
           onChanged: (value) => update('energy', value.round()),
         ),
-
         const SizedBox(height: 16),
         Text(tr('notes')),
         const SizedBox(height: 8),
         TextFormField(
-          initialValue: data['notes'] as String? ?? '',
+          controller: notesController,
           maxLines: 4,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
           ),
           onChanged: (value) => update('notes', value),
         ),
-
         const SizedBox(height: 16),
         FilledButton(
-          onPressed: () => widget.onChanged(data),
+          onPressed: () {
+            widget.onChanged(Map<String, dynamic>.from(data));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(tr('save'))),
+            );
+          },
           child: Text(tr('save')),
         ),
       ],
